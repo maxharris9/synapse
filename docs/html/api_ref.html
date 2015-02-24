@@ -1,0 +1,306 @@
+<!DOCTYPE html public "-//w3c//dtd html 4.0 transitional//en">
+<HTML>  
+<HEAD>
+  <TITLE>Programming for the Synapse API</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff" LINK="#0000ff" VLINK="#ff0000" ALINK="#000088">
+
+<P><FONT SIZE="+4"><IMG SRC="programming_guide.gif" WIDTH="321"
+HEIGHT="57" ALIGN="BOTTOM" BORDER="0" NATURALSIZEFLAG="0"></FONT></P>
+
+<P><TT><FONT SIZE="-1">Copyright &copy; 1998, 1999 Objective Reality
+Computer LLC. All rights reserved.</FONT></TT></P>
+
+<P><A NAME="Contents"></A><U>Contents</U></P>
+
+<BLOCKQUOTE>
+  <P><A HREF="#1.  General API Control">1. General API Control</A></P>
+  <BLOCKQUOTE>
+    <P><A HREF="#1.1  Synapse Interface Controls">1.1 Synapse Interface
+    Controls</A> <BR>
+    <A HREF="#1.2 Events">1.2 Events</A> <BR>
+    <A HREF="#1.2.1">1.2.1 Event Responder Chain</A> <BR>
+    <A HREF="#1.2 Events">1.2.2 Event Types</A></P></BLOCKQUOTE>
+  <P><A HREF="#2.Windows">2.Windows</A></P>
+  <BLOCKQUOTE>
+    <P><A HREF="#2.1 Creating Windows">2.1 Creating Windows</A></P></BLOCKQUOTE>
+  <P><A HREF="#3. Controls">3. Controls</A></P>
+  <BLOCKQUOTE>
+    <P><A HREF="#3.1 Creating Buttons">3.1 Creating Buttons</A> <BR>
+    <A HREF="#3.2 Bar Controls">3.2 Creating Bars</A></P>
+    <BLOCKQUOTE>
+      <P><A HREF="#3.2.1 Bar Controls">3.2.1 Bar Manipulation Routines</A></P></BLOCKQUOTE>
+    <P><A HREF="#3.4 Text">3.4 Creating Text</A><BR>
+    <A HREF="#3.5 Glyphs">3.5 Creating Glyphs</A><BR>
+    <A HREF="#3.6 Regions">3.6 Creating Regions</A></P></BLOCKQUOTE>
+  <P><A HREF="#3.3 General Control Controls">4. General Manipulation
+  Routines</A></P>
+  <BLOCKQUOTE>
+    <BLOCKQUOTE>
+      <P>&nbsp;</P></BLOCKQUOTE>
+  </BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<P><HR ALIGN=LEFT><BR>
+<A NAME="1.  General API Control"></A><FONT SIZE="+1">1. General
+API Control</FONT></P>
+
+<BLOCKQUOTE>
+  <P><A NAME="1.1  Synapse Interface Controls"></A><FONT SIZE="+1">1.1
+  Synapse Interface Controls</FONT></P>
+  <BLOCKQUOTE>
+    <P>-&nbsp; <TT><FONT FACE="Courier">int syn_main(int argc, char
+    **argv)</FONT></TT></P>
+    <BLOCKQUOTE>
+      <P>- Evokes the Synapse main loop.&nbsp; Call this function after
+      declaring callback functions.&nbsp; Typically, your main loop
+      will look very similar to this:</P>
+      <BLOCKQUOTE>
+        <PRE><FONT FACE="Courier">int main(int argc, char **argv)</FONT>
+<FONT FACE="Courier">{</FONT>
+<FONT FACE="Courier">&nbsp;&nbsp;&nbsp; syn_set_callback_init(init);</FONT>
+<FONT FACE="Courier">&nbsp;&nbsp;&nbsp; syn_set_callback_event(event);</FONT>
+<FONT FACE="Courier">&nbsp;&nbsp;&nbsp; syn_set_callback_idle(idle);</FONT>
+<FONT FACE="Courier">&nbsp;&nbsp;&nbsp; syn_main(argc, argv);</FONT>
+<FONT FACE="Courier">}</FONT></PRE>
+      </BLOCKQUOTE>
+    </BLOCKQUOTE>
+    <P>- <TT><FONT FACE="Courier">void syn_quit(void)</FONT></TT></P>
+    <BLOCKQUOTE>
+      <P>- Use this to close any undestroyed windows, controls, and
+      connections before quitting your application.&nbsp; This function
+      never returns.</P></BLOCKQUOTE>
+    <P>- <TT>int syn_set_callback_init(init_callback callback)</TT></P>
+    <BLOCKQUOTE>
+      <P>- Initialize the init callback function.&nbsp; <TT>callback</TT>
+      is the function to be called during the initialization phase
+      of <TT>syn_main</TT>.&nbsp; This function should perform any
+      initializations the program requires (the initializations you
+      might normally do during <TT>main()</TT>).</P>
+      <P>The callback function should have the following return type
+      and arguments:</P>
+      <BLOCKQUOTE>
+        <P><TT>void init(int argc, char **argv)</TT></P></BLOCKQUOTE>
+      <P><TT>argc</TT> and <TT>argv</TT> are the same parameters that
+      were passed to main, less the arguments that synapse parsed.</P></BLOCKQUOTE>
+    <P>- <TT>int syn_set_callback_event(event_callback callback)</TT></P>
+    <BLOCKQUOTE>
+      <P>- Initialize the event callback function.&nbsp; <TT>callback</TT>
+      is the function to be called upon receiving an event from Synapse.</P>
+      <P>The callback function should have the following return type
+      and arguments:</P>
+      <BLOCKQUOTE>
+        <P><TT>void event(unsigned long id, int type, int modifier, Point
+        *where, unsigned long ticks)</TT></P></BLOCKQUOTE>
+      <P><TT>id</TT> identifies the node the event happened to.&nbsp;
+      <TT>type</TT> is the type of event (defined in <A HREF="#1.2 Events">section
+      1.2</A>). <TT>modifier</TT> and <TT>where</TT> are specific to
+      the type of event. <TT>ticks</TT> is equal to the number of seconds
+      that have elapsed since Synapse started, times 100.</P></BLOCKQUOTE>
+    <P>- <TT>int syn_set_callback_idle(idle_callback callback)</TT></P>
+    <BLOCKQUOTE>
+      <P>- Set the callback function for idle time.&nbsp; callback
+      gets called once every time through the main loop.</P>
+      <P>The callback function should have the following return type
+      and arguments:</P>
+      <BLOCKQUOTE>
+        <P><TT>void idle(void)</TT></P></BLOCKQUOTE>
+    </BLOCKQUOTE>
+  </BLOCKQUOTE>
+  <P><A NAME="1.2 Events"></A><FONT SIZE="+1">1.2 Events</FONT></P>
+  <BLOCKQUOTE>
+    <P>Events are messages that indicate that something happened
+    to a Synapse object.&nbsp; Events are usually triggered by the
+    user, but may be triggered by another entity in special cases.</P>
+    <P>Events are divided into three classes: <TABLE BORDER="1" 
+    COLS="3" NOSAVE CELLSPACING="0" CELLPADDING="0" WIDTH="75%">
+      <TR ALIGN="LEFT" VALIGN="TOP" NOSAVE>
+        <TD NOSAVE><B>Primitive</B></TD> 
+        <TD><B>Object</B></TD> 
+        <TD><B>Manager</B></TD> 
+      </TR>
+      <TR ALIGN="LEFT" VALIGN="TOP" WIDTH="80%">
+        <TD><FONT FACE="Courier">EVENT_MOUSEDOWN <BR>
+          EVENT_MOUSEUP <BR>
+          EVENT_MOUSEDRAG <BR>
+          EVENT_KEYDOWN <BR>
+          EVENT_KEYUP</FONT></TD> 
+        <TD><FONT FACE="Courier">EVENT_CLICK <BR>
+          EVENT_KEYPRESS <BR>
+          EVENT_FOCUSON <BR>
+          EVENT_FOCUSOFF <BR>
+          EVENT_DRAG <BR>
+          EVENT_DESTROY</FONT></TD> 
+        <TD NOSAVE><FONT FACE="Courier">EVENT_RESIZE <BR>
+          EVENT_CHANGE</FONT></TD> 
+      </TR>
+    </TABLE></P>
+    <P>Primitive events are triggered directly by the user, and directly
+    correspond to user input functions.&nbsp; Object events are triggered
+    by Synapse objects responding to primitive events.&nbsp; Manager
+    events are triggered by internal Synapse programs called managers
+    that handle more complex Synapse objects such as scroll bars
+    and windows, and are very specific to those managers. <BR>
+    &nbsp;</P></BLOCKQUOTE>
+  <P><A NAME="1.2.1"></A><FONT SIZE="+1">1.2.1 Event responder
+  chain</FONT></P>
+  <BLOCKQUOTE>
+    <P>When an primitive event is triggered by user action, Synapse
+    first sends the event to the object that it thinks should receive
+    it.&nbsp; For example, if an <FONT FACE="Courier">EVENT_MOUSEDOWN</FONT>
+    happened while the pointer was over a button, that button object
+    would first receive the event.&nbsp; However, Synapse objects
+    can ignore events or generate object events.&nbsp; The ignored
+    event or the new event then passes up what is called the event
+    responder chain until it is handled.&nbsp; The application always
+    lies at the top of the chain.</P>
+    <P>As an example, let's say that a user clicked down on a flatwindow's
+    close box.&nbsp; The close box button receives a <FONT FACE="Courier">EVENT_MOUSEDOWN</FONT>
+    event, and it handles it by visually indicating that it has been
+    pressed.&nbsp; The event stops there, because it has been handled
+    properly by the button.&nbsp; The application will never receive
+    the <FONT FACE="Courier">EVENT_MOUSEDOWN</FONT>.</P>
+    <P>Now, let's say the user released the mouse button, indicating
+    that he/she would like to close that window.&nbsp; An <FONT FACE="Courier">EVENT_MOUSEUP</FONT>
+    is sent to the close box.&nbsp; The close box handles the event
+    by visually indicating that the button has been released, and
+    then sends an <FONT FACE="Courier">EVENT_CLICK</FONT> to the
+    flat window object.&nbsp; The flat window handles this event
+    by sending an <FONT FACE="Courier">EVENT_DESTROY</FONT> to the
+    application.&nbsp; This is the only event the application sees.&nbsp;
+    The application never receives the <FONT FACE="Courier">EVENT_MOUSEUP</FONT>
+    or the <FONT FACE="Courier">EVENT_CLICK</FONT>, because these
+    events were handled by objects lower on the responder chain.</P>
+    <P>This alleviates the need for an application to do a lot of
+    unnecessary event processing.</P></BLOCKQUOTE>
+  <P><A NAME="1.2.2"></A><FONT SIZE="+1">1.2.2 Event Types</FONT></P>
+  <BLOCKQUOTE>
+    <P>- <FONT FACE="Courier">EVENT_MOUSEDOWN</FONT></P>
+    <BLOCKQUOTE>
+      <P>Indicates that the user has pressed the first (left) mouse
+      button.</P></BLOCKQUOTE>
+    <P>- <FONT FACE="Courier">EVENT_MOUSEUP</FONT></P>
+    <BLOCKQUOTE>
+      <P>Indicates that the user has released the first mouse button.</P></BLOCKQUOTE>
+    <P>- <FONT FACE="Courier">EVENT_MOUSEDRAG</FONT></P>
+    <BLOCKQUOTE>
+      <P>Indicates that the user has moved the mouse while pressing
+      the first mouse button.</P></BLOCKQUOTE>
+    <P>- <FONT FACE="Courier">EVENT_KEYDOWN</FONT> (not yet implemented)</P>
+    <BLOCKQUOTE>
+      <P>Indicates that the user has pressed a key down.&nbsp; This
+      is not yet implemented.&nbsp; Keystrokes currently generate the
+      event <FONT FACE="Courier">EVENT_KEYPRESS</FONT> when they are
+      released.</P></BLOCKQUOTE>
+    <P>- <FONT FACE="Courier">EVENT_KEYUP</FONT></P>
+    <BLOCKQUOTE>
+      <P>Indicates the user has released a depressed key.&nbsp; This
+      is not yet implemented (see <FONT FACE="Courier">EVENT_KEYDOWN</FONT>).</P></BLOCKQUOTE>
+    <P>- <FONT FACE="Courier">EVENT_CLICK</FONT></P>
+    <BLOCKQUOTE>
+      <P>Varies slightly from control to control, but usually means
+      the user has signalled a button click or some other control activation.</P></BLOCKQUOTE>
+    <P>- <FONT FACE="Courier">EVENT_KEYPRESS</FONT></P>
+    <BLOCKQUOTE>
+      <P>The user has pressed and released a key, or is holding a key
+      down, causing it to repeat.</P></BLOCKQUOTE>
+    <P>- <FONT FACE="Courier">EVENT_FOCUSON</FONT> (not yet implemented)</P>
+    <BLOCKQUOTE>
+      <P>The object has gained focus, either by a click or keyboard
+      hotkey.</P></BLOCKQUOTE>
+    <P>- <FONT FACE="Courier">EVENT_FOCUSOFF</FONT></P>
+    <BLOCKQUOTE>
+      <P>Indicates the object has lost focus.</P></BLOCKQUOTE>
+    <P>- <FONT FACE="Courier">EVENT_DRAG</FONT></P>
+    <BLOCKQUOTE>
+      <P>The user has dragged across an object, such as a region or
+      window face.</P></BLOCKQUOTE>
+  </BLOCKQUOTE>
+  <P><A HREF="#Contents">Back to the Contents</A></P>
+  <P><A NAME="2.Windows"></A><FONT SIZE="+1">2.Windows</FONT></P>
+  <P><A NAME="2.1 Creating Windows"></A><FONT SIZE="+1">2.1 Creating
+  Windows</FONT></P>
+  <BLOCKQUOTE>
+    <P>- <TT>int syn_create_deepwindow(unsigned long *id, int wintype,
+    Point *origin, Point *size, Point *rotation, int visible, char
+    *title)</TT> (not implemented completely)</P>
+    <BLOCKQUOTE>
+      <P>- Creates a deepwindow, which is to be used primarily for
+      containing 3D data, such as models.&nbsp; The functionality of
+      a deepwindow is not complete, so use of this function is not
+      encouraged for DR1/a.</P></BLOCKQUOTE>
+    <P>-&nbsp; <TT>int syn_create_flatwindow(unsigned long *id, int
+    wintype, Point *origin, Point *size, Point *rotation, int visible,
+    char *title)</TT></P>
+    <BLOCKQUOTE>
+      <P>- <TT>unsigned long *id</TT></P>
+      <BLOCKQUOTE>
+        <P>- This is the <FONT FACE="Courier">id</FONT> of the new flatwindow.</P></BLOCKQUOTE>
+      <P>- <TT>int wintype</TT></P>
+      <BLOCKQUOTE>
+        <P>- This determines what type of flatwindow is to be created.&nbsp;
+        This can be <FONT FACE="Courier">REGULAR</FONT>, <FONT FACE="Courier">MINI</FONT>,
+        or <FONT FACE="Courier">DIALOG</FONT>.&nbsp; A <FONT FACE="Courier">REGULAR</FONT>
+        window is for standard data windows, while <FONT FACE="Courier">MINI</FONT>
+        is for toolbars, inspectors, and other smaller windows, and <FONT
+         FACE="Courier">DIALOG</FONT> is for dialog and alert boxes.</P></BLOCKQUOTE>
+      <P>- <FONT FACE="Courier">Point *origin</FONT></P>
+      <BLOCKQUOTE>
+        <P>- This is the <FONT FACE="Courier">origin</FONT> of the flatwindow
+        to be created.&nbsp; The <FONT FACE="Courier">origin</FONT> is
+        the lower-left corner.</P></BLOCKQUOTE>
+      <P>- <FONT FACE="Courier">Point *size</FONT></P>
+      <BLOCKQUOTE>
+        <P>- The dimensions of the flatwindow to be created.&nbsp; The
+        z dimension is ignored (all flatwindows must have the same predetermined
+        depth).</P></BLOCKQUOTE>
+      <P>- <FONT FACE="Courier">Point *rotation</FONT></P>
+      <BLOCKQUOTE>
+        <P>- This is the amount the flat window is rotated about the
+        x, y, and z axes.&nbsp; Rotation is expressed in degrees of variance
+        from a flatwindow perpendicular to the z axis with the titlebar
+        parallel to the x axis.</P></BLOCKQUOTE>
+      <P>- <FONT FACE="Courier">int visible</FONT></P>
+      <BLOCKQUOTE>
+        <P>- <TT><FONT FACE="Courier">TRUE</FONT></TT> indicates that
+        the new button will initially be visible. <FONT FACE="Courier">FALSE</FONT>
+        will keep it hidden until this attribute is set to <FONT FACE="Courier">TRUE</FONT>.
+        Use <FONT FACE="Courier">syn_set_visibility(unsigned long id,
+        int visibility)</FONT> to set this variable.</P></BLOCKQUOTE>
+      <P>-&nbsp; char *title</P>
+      <BLOCKQUOTE>
+        <P>-&nbsp; This string is displayed in the titlebar of the new
+        flatwindow.</P></BLOCKQUOTE>
+    </BLOCKQUOTE>
+  </BLOCKQUOTE>
+  <P><A HREF="#Contents">Back to the Contents</A></P></BLOCKQUOTE>
+
+<P><A NAME="3. Controls"></A><FONT SIZE="+1">3. Controls</FONT></P>
+
+<BLOCKQUOTE>
+  <P><A NAME="3.1 Creating Buttons"></A><FONT SIZE="+1">3.1 Creating
+  Buttons</FONT></P>
+  <BLOCKQUOTE>
+    <P>-&nbsp; <TT>int syn_create_button(unsigned long *id, unsigned
+    long parent, int type, Point *origin, Point *size, Point rotation,
+    int visible, char *label)</TT></P>
+    <BLOCKQUOTE>
+      <P>- <TT>unsigned long *id</TT></P>
+      <BLOCKQUOTE>
+        <P>- This is the <FONT FACE="Courier">id</FONT> of the new button.</P></BLOCKQUOTE>
+      <P>- <TT>unsigned long parent</TT></P>
+      <BLOCKQUOTE>
+        <P>- This is the <FONT FACE="Courier">id</FONT> of the button's
+        parent object, which is usually the <FONT FACE="Courier">id</FONT>
+        of a flatwindow.</P></BLOCKQUOTE>
+      <P>- <TT>int type</TT></P>
+      <BLOCKQUOTE>
+        <P>- This determines the type of button to be created.&nbsp;
+        It can be one of <TT>PUSH</TT>, <TT>CHECK</TT>, or <TT>RADIO</TT>.&nbsp;
+        A <TT>PUSH</TT> button is a regular button (a rectangle that
+        can be pressed in/out and is activated upon clicking on it).&nbsp;
+        A <TT>CHECK</TT> is a check box button.&nbsp; A <TT>RADIO</TT>
+        is a radio button.&nbsp; <TT>CHECK</TT> and <TT>RADIO</TT> can
+        have a state of either on or off, and are initially off.&nbsp;
+        The difference between a <TT>CHECK</TT> and a <TT>RADIO</TT>
+       

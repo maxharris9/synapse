@@ -1,0 +1,16 @@
+#ifndef _RESOURCES_H_
+#define _RESOURCES_H_
+
+enum resource_id {
+  RES_POINTER,
+  RES_CORNERBL1,
+  RES_GRIPPY,
+  RES_UPGLYPH,
+  RES_CHECK,
+  RES_DEEPGRIP,
+  RES_CLOSEGRIP,
+  RES_SQUAREGRIP,
+  RES_RADIO
+};
+
+#endif
